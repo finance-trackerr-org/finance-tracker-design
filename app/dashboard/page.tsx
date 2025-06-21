@@ -10,46 +10,48 @@ import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import AccountCircle from '@mui/icons-material/AccountCircle';
+import DashboardLayout from './layout'
 
 function Dashboard() {
     const unreadCount = 2;
 
     return (
-        <div className='flex'>
-            <SideBar />
-            <div className='flex-1 pt-6 pb-6 pr-10 pl-10'>
-                <div className='flex justify-between align-baseline'>
-                    <div>
-                        <Typography variant='h4'>Dashboard</Typography>
-                        <Typography variant='subtitle1' sx={{ marginLeft : '1rem' }}>Welcome back, Alex! Here's your financial summary</Typography>
-                    </div>
-                    <div>
-                        <Link href={'/dashboard/notifications'} passHref>
-                            <IconButton color='inherit'>
-                                <Badge badgeContent={unreadCount} color='error'>
-                                    <NotificationsOutlinedIcon />
-                                </Badge>
-                            </IconButton>
-                        </Link>
-                        <Link href={'/user/user-profile'} passHref>
-                            <IconButton
-                                size="large"
-                                aria-label="account of current user"
-                                aria-controls="menu-appbar"
-                                aria-haspopup="true"
-                            >
-                                <AccountCircle />
-                            </IconButton>
-                        </Link>
-                    </div>
+        <>
+            <div className='flex justify-between align-baseline'>
+                <div>
+                    <Typography variant='h4'>Dashboard</Typography>
+                    <Typography variant='subtitle1' sx={{ marginLeft : '0.5rem' }}>Welcome back, Alex! Here's your financial summary</Typography>
                 </div>
+                <div>
+                    <Link href={'/dashboard/notifications'} passHref>
+                        <IconButton color='inherit' size="large">
+                            <Badge badgeContent={unreadCount} color='error'>
+                                <NotificationsOutlinedIcon fontSize="large" />
+                            </Badge>
+                        </IconButton>
+                    </Link>
+                    <Link href={'/user/user-profile'} passHref>
+                        <IconButton
+                            size="large"
+                            aria-label="account of current user"
+                            aria-controls="menu-appbar"
+                            aria-haspopup="true"
+                        >
+                            <AccountCircle fontSize="large" />
+                        </IconButton>
+                    </Link>
+                </div>
+            </div>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 p-4'>
                 <Overview />
                 <BudgetOverview />
                 <ExpenseBreakdown />
                 <TransactionHistory />
             </div>
-        </div>
+        </>
     )
 }
+
+Dashboard.getLayout = (page: React.ReactNode) => <DashboardLayout>{page}</DashboardLayout>;
 
 export default Dashboard
