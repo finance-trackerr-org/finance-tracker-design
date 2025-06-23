@@ -81,7 +81,7 @@ function SignInForm() {
       }else {
         enqueueSnackbar({ severity: 'success', message: res.message });
         setSnackBarOpen(true);
-        // router.replace('/dashboard');
+        router.replace('/dashboard');
       }
     } catch(err : any) {
       setSnackBarProps({ severity: 'error', message: 'Something went wrong' });
