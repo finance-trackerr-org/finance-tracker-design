@@ -2,16 +2,18 @@
 
 import React, { useEffect, useState } from 'react'
 import SearchBox from '@/app/components/SearchBox';
-import Calendar from '@/app/components/Calendar';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import CustomSelectDropdown from '@/app/components/CustomeSelectDropdown';
 import dayjs, { Dayjs } from 'dayjs';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import { Button, Divider, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@mui/material';
+import { Box, Button, Divider, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@mui/material';
 import { fetchCategories, fetchTransactions } from '@/lib/api/transaction';
 import CustomizedSnackbar from '../SnackBar';
+import CustomDatePicker from '@/app/components/Calendar';
 
 interface TransactionData {
     category : string,
@@ -50,6 +52,9 @@ function History() {
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(2);
+
+    const today = dayjs();
+    const minDate = today.subtract(3, 'month');
 
     const handleSnackBarClose = () => {
         setSnackBarOpen(false);
@@ -190,17 +195,30 @@ function History() {
                         value = {searchText}
                         onChange = {setSearchText}
                     />
-                    <Calendar
-                        startDate = {startDate}
-                        endDate = {endDate}
-                        setStartDate = {setStartDate}
-                        setEndDate = {setEndDate}
-                    />
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <Box display="flex" gap={2}>
+                            <CustomDatePicker
+                            label="Start Date"
+                            value={startDate}
+                            onChange={setStartDate}
+                            minDate={minDate}
+                            maxDate={endDate || today}
+                            />
+                            <CustomDatePicker
+                            label="End Date"
+                            value={endDate}
+                            onChange={setEndDate}
+                            minDate={startDate || minDate}
+                            maxDate={today}
+                            />
+                        </Box>
+                    </LocalizationProvider>
                     <CustomSelectDropdown
                         label='Choose category'
                         value={selectedCategory}
                         options={categoryOptions}
                         onChange={setSelectedCategory}
+                        variant='outlined'
                     />
                 </AccordionDetails>
                 <Divider sx={{ my: 2, borderColor: 'grey.300', margin:'0' }} variant='middle' />
