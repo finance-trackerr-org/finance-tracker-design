@@ -1,9 +1,4 @@
 import React from 'react'
-import SideBar from '../components/SideBar'
-import Overview from '../components/dashboard/Overview'
-import BudgetOverview from '../components/dashboard/BudgetOverview'
-import ExpenseBreakdown from '../components/dashboard/ExpenseBreakdown'
-import TransactionHistory from './transactions/history/page'
 import { Typography } from '@mui/material'
 import Link from 'next/link';
 import IconButton from '@mui/material/IconButton';
@@ -11,6 +6,7 @@ import Badge from '@mui/material/Badge';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import DashboardLayout from './layout'
+import DashBoardMainComponent from '../components/dashboard/DashBoardMainComponent'
 
 function Dashboard() {
     const unreadCount = 2;
@@ -42,12 +38,7 @@ function Dashboard() {
                     </Link>
                 </div>
             </div>
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 p-4'>
-                <Overview />
-                <BudgetOverview />
-                <ExpenseBreakdown />
-                <TransactionHistory />
-            </div>
+            <DashBoardMainComponent />
         </>
     )
 }

@@ -4,7 +4,7 @@ export const fetchTransactions = async(data: {usedId : string, fromDate : string
         method:'post',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMDQ3NzM0LCJleHAiOjE3NTEwNDg2MzR9.qtOM2pJU56XjhlEkxsKqApgm_uLfeHcE9AZJVOEMLzE',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMzk0MjU1LCJleHAiOjE3NTEzOTUxNTV9.VsU7xmGgpezB0pP5-AjHi4qGb7mCVKkT1aRA22Q7L9w',
             "userName":'abhay.r@gmail.com'
         },
         body: JSON.stringify(data),
@@ -17,7 +17,7 @@ export const addTransaction = async(formData : FormData) => {
     const response = await fetch(`http://localhost:8081/api/transaction/add-transaction`,{
         method:'post',
         headers:{
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMDQ3NzM0LCJleHAiOjE3NTEwNDg2MzR9.qtOM2pJU56XjhlEkxsKqApgm_uLfeHcE9AZJVOEMLzE',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMzk0MjU1LCJleHAiOjE3NTEzOTUxNTV9.VsU7xmGgpezB0pP5-AjHi4qGb7mCVKkT1aRA22Q7L9w',
             "userName":'abhay.r@gmail.com'
         },
         body: formData,
@@ -26,14 +26,42 @@ export const addTransaction = async(formData : FormData) => {
     return await response.json();
 }
 
-export const fetchCategories = async(userId : string) => {
+export const fetchCategories = async(userId: string) => {
     const response = await fetch(`http://localhost:8081/api/category/get-category?userId=${userId}`,{
         method:'get',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMDQ3NzM0LCJleHAiOjE3NTEwNDg2MzR9.qtOM2pJU56XjhlEkxsKqApgm_uLfeHcE9AZJVOEMLzE',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMzk0MjU1LCJleHAiOjE3NTEzOTUxNTV9.VsU7xmGgpezB0pP5-AjHi4qGb7mCVKkT1aRA22Q7L9w',
             "userName":'abhay.r@gmail.com'
         }
+    })
+
+    return await response.json();
+}
+
+export const fetchFinanceOverview = async(data : {userId : string, fromDate : string, toDate : string}) => {
+    const response = await fetch(`http://127.0.0.1:8081/api/transaction/finance-overview`,{
+        method:'post',
+        headers:{
+            'Content-Type': 'application/json',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMzk0MjU1LCJleHAiOjE3NTEzOTUxNTV9.VsU7xmGgpezB0pP5-AjHi4qGb7mCVKkT1aRA22Q7L9w',
+            "userName":'abhay.r@gmail.com'
+        },
+        body: JSON.stringify(data)
+    })
+
+    return await response.json();
+}
+
+export const fetchCategoriesTransactionData = async(data : {userId : string, fromDate : string, toDate : string}) => {
+    const response = await fetch(`http://127.0.0.1:8081/api/transaction/transactions-by-category`,{
+        method:'post',
+        headers:{
+            'Content-Type': 'application/json',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMzk0MjU1LCJleHAiOjE3NTEzOTUxNTV9.VsU7xmGgpezB0pP5-AjHi4qGb7mCVKkT1aRA22Q7L9w',
+            "userName":'abhay.r@gmail.com'
+        },
+        body: JSON.stringify(data)
     })
 
     return await response.json();

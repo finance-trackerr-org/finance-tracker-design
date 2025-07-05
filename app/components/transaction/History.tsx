@@ -14,6 +14,8 @@ import { Box, Button, Divider, Paper, Table, TableBody, TableCell, TableContaine
 import { fetchCategories, fetchTransactions } from '@/lib/api/transaction';
 import CustomizedSnackbar from '../SnackBar';
 import CustomDatePicker from '@/app/components/Calendar';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 interface TransactionData {
     category : string,
@@ -30,7 +32,7 @@ type PaginatedResult<TransactionData> = {
     totalElements: number;
     size: number;
     number : number;
-};
+};  
 
 function History() {
     const tableRow = ['Category', 'Type', 'Date', 'Amount', 'Description', 'Attachment']
@@ -50,8 +52,10 @@ function History() {
 
     const [paginationResult, setPaginationResult] = useState<PaginatedResult<TransactionData>>();
 
+    const isDashboardPath = usePathname() == '/dashboard';
+
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(2);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     const today = dayjs();
     const minDate = today.subtract(3, 'month');
@@ -180,8 +184,9 @@ function History() {
     };
     
     return (
-        <div className='flex flex-col bg-white rounded-md p-2'>
-            <Typography variant='h4' sx={{ padding : '1rem' }}>Transaction History</Typography>
+        <div className={`flex flex-col bg-white rounded-md ${isDashboardPath ? 'p-4' : 'p-2'}`}>
+            { !isDashboardPath && <Typography variant='h4' sx={{ padding : '1rem' }}>Transaction History</Typography>}
+            { !isDashboardPath && 
             <Accordion>
                 <AccordionSummary
                     expandIcon={<ArrowDropDownIcon />}
@@ -225,9 +230,10 @@ function History() {
                 <div className='flex justify-end'>
                     <Button sx={{ color: 'gray',fontWeight:'bold' }} onClick={setClearFilter}>Clear Filter</Button>    
                 </div>
-            </Accordion>
-            <div>
-                <Typography variant='h5' sx={{ paddingTop : '2rem', marginBottom:"2rem", }}>Recent Transactions</Typography>
+            </Accordion> }
+            <div className='flex justify-between items-center'>
+                <Typography variant={isDashboardPath ? 'h2' : 'h5'} sx={isDashboardPath ? { font: 'revert',paddingBottom:'1rem' }  : { paddingTop : '2rem', marginBottom:"2rem" }}>Recent Transactions</Typography>
+                <Link href="/dashboard/transactions/history" className="text-blue-600 underline font-medium">view all</Link>
             </div>
             <Paper sx={{ width : '100%' , overflow : 'hidden' }}>
                 <TableContainer sx={{ maxHeight : 440 }}>
@@ -276,7 +282,7 @@ function History() {
                         </TableBody>
                     </Table>
                 </TableContainer>
-                { paginationResult != null && 
+                { paginationResult != null && !isDashboardPath &&
                 <TablePagination
                     component="div"
                     rowsPerPageOptions={[2, 5]}
