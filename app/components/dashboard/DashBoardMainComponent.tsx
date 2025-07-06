@@ -12,8 +12,10 @@ function DashBoardMainComponent() {
         fromDate : dayjs().startOf('month').format('YYYY-MM-DD'),
         toDate : dayjs().endOf('month').format('YYYY-MM-DD'),
     });
+    console.log("dashboard from data: ",dates)
 
     const handleMonthChange = useCallback((fromDate: string, toDate: string) => {
+        console.log("000000000000======",fromDate, toDate)
         setDates({ fromDate, toDate });
     }, []);
 
@@ -23,7 +25,7 @@ function DashBoardMainComponent() {
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 p-4'>
                 <Overview dates = {dates}/>
                 <CategoryFinanceOverview dates={dates}/>
-                <History />
+                <History dates = {dates}/>
             </div>
         </>
     )

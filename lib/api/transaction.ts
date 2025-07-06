@@ -4,7 +4,7 @@ export const fetchTransactions = async(data: {usedId : string, fromDate : string
         method:'post',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMzk0MjU1LCJleHAiOjE3NTEzOTUxNTV9.VsU7xmGgpezB0pP5-AjHi4qGb7mCVKkT1aRA22Q7L9w',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
             "userName":'abhay.r@gmail.com'
         },
         body: JSON.stringify(data),
@@ -17,7 +17,7 @@ export const addTransaction = async(formData : FormData) => {
     const response = await fetch(`http://localhost:8081/api/transaction/add-transaction`,{
         method:'post',
         headers:{
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMzk0MjU1LCJleHAiOjE3NTEzOTUxNTV9.VsU7xmGgpezB0pP5-AjHi4qGb7mCVKkT1aRA22Q7L9w',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
             "userName":'abhay.r@gmail.com'
         },
         body: formData,
@@ -31,7 +31,7 @@ export const fetchCategories = async(userId: string) => {
         method:'get',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMzk0MjU1LCJleHAiOjE3NTEzOTUxNTV9.VsU7xmGgpezB0pP5-AjHi4qGb7mCVKkT1aRA22Q7L9w',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
             "userName":'abhay.r@gmail.com'
         }
     })
@@ -44,7 +44,7 @@ export const fetchFinanceOverview = async(data : {userId : string, fromDate : st
         method:'post',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMzk0MjU1LCJleHAiOjE3NTEzOTUxNTV9.VsU7xmGgpezB0pP5-AjHi4qGb7mCVKkT1aRA22Q7L9w',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
             "userName":'abhay.r@gmail.com'
         },
         body: JSON.stringify(data)
@@ -58,11 +58,24 @@ export const fetchCategoriesTransactionData = async(data : {userId : string, fro
         method:'post',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxMzk0MjU1LCJleHAiOjE3NTEzOTUxNTV9.VsU7xmGgpezB0pP5-AjHi4qGb7mCVKkT1aRA22Q7L9w',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
             "userName":'abhay.r@gmail.com'
         },
         body: JSON.stringify(data)
     })
 
     return await response.json();
+}
+
+export const downloadTransactionAttachment = async(id : number) => {
+    const response = await fetch(`http://127.0.0.1:8081/api/file/download/${id}`,{
+        method:'get',
+        headers:{
+            'Content-Type': 'application/json',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
+            "userName":'abhay.r@gmail.com'
+        }
+    })
+
+    return await response;
 }

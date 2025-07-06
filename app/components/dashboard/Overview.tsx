@@ -20,6 +20,10 @@ interface FinanceOverview {
     upcoming_bills : number | null;
 }
 
+interface DateProps {
+    dates : {fromDate : string, toDate : string}
+}
+
 function IsValidNumber(current_value: any, previous_value: any) {
     const isValid = typeof current_value === 'number' && typeof previous_value === 'number';
 
@@ -33,7 +37,7 @@ function IsValidNumber(current_value: any, previous_value: any) {
     return [value_diff, value_achieved];
 }
 
-function Overview(dates : {fromDate : string, toDate : string} | any) {
+function Overview({dates} : DateProps) {
     const finance_overview_default = {
         balance: null,
         previous_balance: null,
@@ -44,7 +48,7 @@ function Overview(dates : {fromDate : string, toDate : string} | any) {
         upcoming_bill_days:null,
         upcoming_bills : null
     };
-    console.log("dates====",dates)
+    console.log("overview dates : ",dates)
 
     const [overviewData, setOverviewData] = useState<FinanceOverview>(finance_overview_default);
 
@@ -91,6 +95,7 @@ function Overview(dates : {fromDate : string, toDate : string} | any) {
                     }
                 }
             }
+            setOverviewData(finance_overview_default)
         }else{
             enqueueSnackbar({ severity: 'success', message: res.message });
             setOverviewData(res.data)
@@ -102,8 +107,8 @@ function Overview(dates : {fromDate : string, toDate : string} | any) {
 
     useEffect(() => {
         console.log('dates111=====',dates.fromDate)
-        fetchOverview(dates.dates.fromDate,dates.dates.toDate,"8fd487f8-2c88-49c1-875b-bff3722185ab")
-    },[])
+        fetchOverview(dates.fromDate,dates.toDate,"8fd487f8-2c88-49c1-875b-bff3722185ab")
+    },[dates])
 
     const [balance_diff, balance_achieved] = IsValidNumber(overviewData.balance, overviewData.previous_balance);
     const [expense_diff, expense_achieved] = IsValidNumber(overviewData.expense, overviewData.previous_expense);

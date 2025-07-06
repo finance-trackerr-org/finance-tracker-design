@@ -14,7 +14,7 @@ function CustomizedSnackbar({ severity, message, open, onClose, onSnackBarClose 
     };
 
     return (
-        <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical : 'bottom', horizontal : 'right' }}>
+        <Snackbar open={open} autoHideDuration={1000} onClose={handleClose} anchorOrigin={{ vertical : 'bottom', horizontal : 'right' }}>
             <Alert
                 onClose={handleClose}
                 severity={severity}

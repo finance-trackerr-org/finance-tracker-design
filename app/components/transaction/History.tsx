@@ -11,13 +11,14 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { Box, Button, Divider, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@mui/material';
-import { fetchCategories, fetchTransactions } from '@/lib/api/transaction';
+import { downloadTransactionAttachment, fetchCategories, fetchTransactions } from '@/lib/api/transaction';
 import CustomizedSnackbar from '../SnackBar';
 import CustomDatePicker from '@/app/components/Calendar';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 interface TransactionData {
+    id : number,
     category : string,
     type : string,
     date : string,
@@ -32,9 +33,13 @@ type PaginatedResult<TransactionData> = {
     totalElements: number;
     size: number;
     number : number;
-};  
+};
 
-function History() {
+interface DateProps {
+    dates? : {fromDate : string, toDate : string}
+}
+
+function History({dates} : DateProps) {
     const tableRow = ['Category', 'Type', 'Date', 'Amount', 'Description', 'Attachment']
     const [selectedCategory, setSelectedCategory] = useState('');
     const [categoryOptions, selectCategoryOptions] = useState([])
@@ -43,8 +48,8 @@ function History() {
 
     const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().subtract(3, 'month'));
     const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
-    const formattedStartDate = startDate?.format("YYYY-MM-DD");
-    const formattedEndDate = endDate?.format("YYYY-MM-DD");
+    const formattedStartDate = dates?.fromDate ? dates.fromDate : startDate?.format("YYYY-MM-DD");
+    const formattedEndDate = dates?.toDate ? dates.toDate : endDate?.format("YYYY-MM-DD");
 
     const [snackBarProps ,setSnackBarProps] = useState<null | { severity: 'success' | 'error'; message: string }>(null);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
@@ -70,17 +75,13 @@ function History() {
     }
     
     useEffect(() => {
-    if(!snackBarOpen && snackBarQueue.length>0){
-        const nextStack = snackBarQueue[0]
-        setSnackBarProps(nextStack)
-        setSnackBarQueue(prev => prev.slice(1))
-        setSnackBarOpen(true)
-    }
+        if(!snackBarOpen && snackBarQueue.length>0){
+            const nextStack = snackBarQueue[0]
+            setSnackBarProps(nextStack)
+            setSnackBarQueue(prev => prev.slice(1))
+            setSnackBarOpen(true)
+        }
     }, [snackBarQueue,snackBarOpen])
-
-    useEffect(() => {
-        fetchSystemCategories()
-    }, [])
 
     function setClearFilter() {
         setSearchText('')
@@ -90,6 +91,19 @@ function History() {
     }
 
     console.log("hiii===",selectedCategory,searchText,formattedStartDate,formattedEndDate)
+
+    const enqueueSnackBar = (res : any) => {
+        enqueueSnackbar({ severity: 'error', message: res.message });
+        if(res.errors){
+            if(typeof res.errors == 'string') {
+                enqueueSnackbar({ severity: 'error', message: res.message });
+            }else{
+                for(let error of res.errors){
+                    enqueueSnackbar({ severity: 'error', message: error });
+            }
+            }
+        }
+    }
 
     async function fetchUserTransactions(category : String, text : String, startDate : String | undefined, endDate : String | undefined, page : number, rowsPerPage : number) {
         try{
@@ -101,21 +115,11 @@ function History() {
                 'searchText' : text
             }
             const res : any = await fetchTransactions(requestBody,page,rowsPerPage)
-            if(res.status != 'OK'){
-                enqueueSnackbar({ severity: 'error', message: res.message });
-                if(res.errors){
-                    if(typeof res.errors == 'string') {
-                        enqueueSnackbar({ severity: 'error', message: res.message });
-                    }else{
-                        for(let error of res.errors){
-                            enqueueSnackbar({ severity: 'error', message: error });
-                    }
-                }
+            if(res.status != 'OK') enqueueSnackBar(res)
+            else{
+                enqueueSnackbar({ severity: 'success', message: res.message });
+                setPaginationResult(res.data)
             }
-        }else{
-            enqueueSnackbar({ severity: 'success', message: res.message });
-            setPaginationResult(res.data)
-        }
         }catch(err : any){
             enqueueSnackbar({ severity: 'error', message: 'Something went wrong' });
         }
@@ -126,22 +130,43 @@ function History() {
             const userId = '8fd487f8-2c88-49c1-875b-bff3722185ab'
             const res : any = await fetchCategories(userId)
             console.log("res=-==== ",res)
-            if(res.status != 'OK'){
-                enqueueSnackbar({ severity: 'error', message: res.message });
-                if(res.errors){
-                    if(typeof res.errors == 'string') {
-                        enqueueSnackbar({ severity: 'error', message: res.message });
-                    }else{
-                        for(let error of res.errors){
-                            enqueueSnackbar({ severity: 'error', message: error });
-                    }
-                }
+            if(res.status != 'OK') enqueueSnackBar(res)
+            else{
+                enqueueSnackbar({ severity: 'success', message: res.message });
+                selectCategoryOptions(res.data)
             }
-        }else{
-            enqueueSnackbar({ severity: 'success', message: res.message });
-            selectCategoryOptions(res.data)
-        }
         }catch(err : any){
+            enqueueSnackbar({ severity: 'error', message: 'Something went wrong' });
+        }
+    }
+
+    // Helper to extract filename from Content-Disposition
+    function getFileNameFromContentDisposition(contentDisposition: string | null): string | null {
+        if (!contentDisposition) return null;
+        const match = contentDisposition.match(/filename="(.+)"/);
+        console.log("match==== ",match)
+        return match ? match[1] : null;
+    }
+
+    async function downloadFile(transactionId : number){
+        try{
+            const res : any = await downloadTransactionAttachment(transactionId)
+            if(!res.ok) enqueueSnackBar(res)
+            else {
+                const blob = await res.blob();
+                const filename = getFileNameFromContentDisposition(res.headers.get('Content-Disposition'));
+                console.log("filename=== ",filename)
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', filename || 'file.pdf');
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }
+        }catch(err : any){
+            console.log(err)
             enqueueSnackbar({ severity: 'error', message: 'Something went wrong' });
         }
     }
@@ -156,7 +181,11 @@ function History() {
         if (isCategorySelected || isSearchTextValid || isDateRangeValid) {
             fetchUserTransactions(selectedCategory, searchText, formattedStartDate, formattedEndDate ,page, rowsPerPage);
         }
-    }, [searchText, startDate, endDate, selectedCategory]);
+    }, [searchText, startDate, endDate, selectedCategory, dates]);
+
+    useEffect(() => {
+        fetchSystemCategories()
+    },[])
 
     function createTransactionData(item: TransactionData) {
         return {
@@ -166,7 +195,9 @@ function History() {
                 item.date.substring(0,10),
                 '$' + item.amount.toFixed(2).toLocaleString(),
                 item.description != '' && item.description != null ? item.description : '-',
-                item.attachment != '' && item.attachment != null ? item.attachment : '-'
+                item.attachment != '' && item.attachment != null ? 
+                    <Button onClick={() => downloadFile(item.id)} className="text-blue-600">Download</Button> :
+                    '-'
             ],
             'type' : item.type
         }
