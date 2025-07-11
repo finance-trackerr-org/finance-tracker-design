@@ -79,3 +79,17 @@ export const downloadTransactionAttachment = async(id : number) => {
 
     return await response;
 }
+
+export const addUserMasterBudget = async(data : { userId : string, totalBalance : number,date : String, categoryPricing : Object }) => {
+    const response = await fetch(`http://localhost:8081/api/transaction/add-user-budgets`,{
+        method:'post',
+        headers:{
+            'Content-Type': 'application/json',
+            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
+            "userName":'abhay.r@gmail.com'
+        },
+        body: JSON.stringify(data),
+    })
+
+    return await response.json();
+}

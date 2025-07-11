@@ -22,7 +22,10 @@ interface CategoryTransactionMap {
 
 interface CategoriesFinanceOverviewMap {
     categoryAmount: {
-      [category: string]: number;
+      [category: string]: {
+        spent : number,
+        budget : number
+      };
     };
     categoryPercentage: {
       [category: string]: number;
@@ -91,12 +94,12 @@ function CategoryFinanceOverview({dates} : DateProps) {
             for(let category in categoryAmount) {
                 if(category != null && category.toUpperCase() in CATEGORIES_COLOR) {
                     const categoryUpper = category.toUpperCase() as CategoryKey
-                    totalSpent += categoryAmount[category]
+                    totalSpent += 'spent' in categoryAmount[category] ? categoryAmount[category]['spent'] : 0
                     categoryAmountData.push({
                         category : category,
                         color : CATEGORIES_COLOR[categoryUpper],
-                        spent : categoryAmount[category],
-                        budget : 300
+                        spent : categoryAmount[category]['spent'],
+                        budget : categoryAmount[category]['budget']
                     })
                     expenseBreakDownData.push({
                         category : category,

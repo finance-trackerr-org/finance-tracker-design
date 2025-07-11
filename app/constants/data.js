@@ -6,3 +6,13 @@ export const CATEGORIES_COLOR = {
     'TRANSPORTATION' : '#EAB308',
     'UTILITIES' : '#EF4444'
 }
+
+export const CATEGORIES = [
+  "HOUSING",
+  "FOOD",
+  "TRANSPORTATION",
+  "ENTERTAINMENT",
+  "SHOPPING",
+  "MEDICAL",
+  "UTILITIES"
+];
