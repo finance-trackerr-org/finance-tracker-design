@@ -1,11 +1,13 @@
-export const fetchTransactions = async(data: {usedId : string, fromDate : string, toDate : string}, page : number, size : number) => {
-    console.log("data==== ",data);
+import { getUserCookie } from "../utils/tokenHandler";
+
+export const fetchTransactions = async(data: {fromDate : string, toDate : string}, page : number, size : number) => {
+    const [token , userName] = getUserCookie();
     const response = await fetch(`http://localhost:8081/api/transaction/get-transactions?page=${page}&size=${size}`,{
         method:'post',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
-            "userName":'abhay.r@gmail.com'
+            'Authorization' : token || '',
+            "userName": userName || ''
         },
         body: JSON.stringify(data),
     })
@@ -14,11 +16,12 @@ export const fetchTransactions = async(data: {usedId : string, fromDate : string
 }
 
 export const addTransaction = async(formData : FormData) => {
+    const [token , userName] = getUserCookie();
     const response = await fetch(`http://localhost:8081/api/transaction/add-transaction`,{
         method:'post',
         headers:{
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
-            "userName":'abhay.r@gmail.com'
+            'Authorization' : token || '',
+            "userName": userName || ''
         },
         body: formData,
     })
@@ -27,12 +30,13 @@ export const addTransaction = async(formData : FormData) => {
 }
 
 export const fetchCategories = async(userId: string) => {
+    const [token , userName] = getUserCookie();
     const response = await fetch(`http://localhost:8081/api/category/get-category?userId=${userId}`,{
         method:'get',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
-            "userName":'abhay.r@gmail.com'
+            'Authorization' : token || '',
+            "userName": userName || ''
         }
     })
 
@@ -40,12 +44,13 @@ export const fetchCategories = async(userId: string) => {
 }
 
 export const fetchFinanceOverview = async(data : {userId : string, fromDate : string, toDate : string}) => {
+    const [token , userName] = getUserCookie();
     const response = await fetch(`http://127.0.0.1:8081/api/transaction/finance-overview`,{
         method:'post',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
-            "userName":'abhay.r@gmail.com'
+            'Authorization' : token || '',
+            "userName": userName || ''
         },
         body: JSON.stringify(data)
     })
@@ -54,12 +59,13 @@ export const fetchFinanceOverview = async(data : {userId : string, fromDate : st
 }
 
 export const fetchCategoriesTransactionData = async(data : {userId : string, fromDate : string, toDate : string}) => {
+    const [token , userName] = getUserCookie();
     const response = await fetch(`http://127.0.0.1:8081/api/transaction/transactions-by-category`,{
         method:'post',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
-            "userName":'abhay.r@gmail.com'
+            'Authorization' : token || '',
+            "userName": userName || ''
         },
         body: JSON.stringify(data)
     })
@@ -68,12 +74,13 @@ export const fetchCategoriesTransactionData = async(data : {userId : string, fro
 }
 
 export const downloadTransactionAttachment = async(id : number) => {
+    const [token , userName] = getUserCookie();
     const response = await fetch(`http://127.0.0.1:8081/api/file/download/${id}`,{
         method:'get',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
-            "userName":'abhay.r@gmail.com'
+            'Authorization' : token || '',
+            "userName": userName || ''
         }
     })
 
@@ -81,12 +88,13 @@ export const downloadTransactionAttachment = async(id : number) => {
 }
 
 export const addUserMasterBudget = async(data : { userId : string, totalBalance : number,date : String, categoryPricing : Object }) => {
+    const [token , userName] = getUserCookie();
     const response = await fetch(`http://localhost:8081/api/transaction/add-user-budgets`,{
         method:'post',
         headers:{
             'Content-Type': 'application/json',
-            'Authorization' : 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFiaGF5LnJAZ21haWwuY29tIiwiaWF0IjoxNzUxODA0Mzc3LCJleHAiOjE3NTI3MDQzNzd9.4DFFA4o8oanlSuZy2DxlhARUizKtdzNyj58qEgGeeRI',
-            "userName":'abhay.r@gmail.com'
+            'Authorization' : token || '',
+            "userName": userName || ''
         },
         body: JSON.stringify(data),
     })

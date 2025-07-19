@@ -3,7 +3,7 @@
 import React, { useCallback, useState } from 'react'
 import Overview from './Overview'
 import History  from "../transaction/History"
-import MonthSelector from '../MonthSelector';
+import MonthSelector from '../ui/MonthSelector';
 import dayjs from 'dayjs';
 import CategoryFinanceOverview from './CategoryFinanceOverview';
 import UserMasterBudgetDialog from './UserMasterBudgetDialog';

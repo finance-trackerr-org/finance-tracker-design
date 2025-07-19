@@ -1,10 +1,10 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import SearchBox from '@/app/components/SearchBox';
+import SearchBox from '@/app/components/ui/SearchBox';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import CustomSelectDropdown from '@/app/components/CustomeSelectDropdown';
+import CustomSelectDropdown from '@/app/components/ui/CustomeSelectDropdown';
 import dayjs, { Dayjs } from 'dayjs';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -12,10 +12,11 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { Box, Button, Divider, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@mui/material';
 import { downloadTransactionAttachment, fetchCategories, fetchTransactions } from '@/lib/api/transaction';
-import CustomizedSnackbar from '../SnackBar';
-import CustomDatePicker from '@/app/components/Calendar';
+
+import CustomDatePicker from '@/app/components/ui/Calendar';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useSnackbarQueue } from '@/app/hooks/useSnackbarQueue';
 
 interface TransactionData {
     id : number,
@@ -51,9 +52,7 @@ function History({dates} : DateProps) {
     const formattedStartDate = dates?.fromDate ? dates.fromDate : startDate?.format("YYYY-MM-DD");
     const formattedEndDate = dates?.toDate ? dates.toDate : endDate?.format("YYYY-MM-DD");
 
-    const [snackBarProps ,setSnackBarProps] = useState<null | { severity: 'success' | 'error'; message: string }>(null);
-    const [snackBarOpen, setSnackBarOpen] = useState(false);
-    const [snackBarQueue, setSnackBarQueue] = useState<{ message: string; severity: 'error' | 'success' }[]>([]);
+    const { enqueueSnackbar, SnackbarRenderer } = useSnackbarQueue();
 
     const [paginationResult, setPaginationResult] = useState<PaginatedResult<TransactionData>>();
 
@@ -64,24 +63,6 @@ function History({dates} : DateProps) {
 
     const today = dayjs();
     const minDate = today.subtract(3, 'month');
-
-    const handleSnackBarClose = () => {
-        setSnackBarOpen(false);
-        setSnackBarProps(null);
-    };
-
-    const enqueueSnackbar = (snack : { message: string; severity: 'error' | 'success' }) => {
-        setSnackBarQueue(prev => [... prev, snack])
-    }
-    
-    useEffect(() => {
-        if(!snackBarOpen && snackBarQueue.length>0){
-            const nextStack = snackBarQueue[0]
-            setSnackBarProps(nextStack)
-            setSnackBarQueue(prev => prev.slice(1))
-            setSnackBarOpen(true)
-        }
-    }, [snackBarQueue,snackBarOpen])
 
     function setClearFilter() {
         setSearchText('')
@@ -96,7 +77,7 @@ function History({dates} : DateProps) {
         enqueueSnackbar({ severity: 'error', message: res.message });
         if(res.errors){
             if(typeof res.errors == 'string') {
-                enqueueSnackbar({ severity: 'error', message: res.message });
+                enqueueSnackbar({ severity: 'error', message: res.errors });
             }else{
                 for(let error of res.errors){
                     enqueueSnackbar({ severity: 'error', message: error });
@@ -108,7 +89,7 @@ function History({dates} : DateProps) {
     async function fetchUserTransactions(category : String, text : String, startDate : String | undefined, endDate : String | undefined, page : number, rowsPerPage : number) {
         try{
             const requestBody : any = {
-                'userId' : '8fd487f8-2c88-49c1-875b-bff3722185ab',
+                'userId' : localStorage.getItem('userId'),
                 "fromDate" : startDate,
                 "toDate" : endDate,
                 'category' : category,
@@ -127,9 +108,8 @@ function History({dates} : DateProps) {
 
     async function fetchSystemCategories() {
         try{
-            const userId = '8fd487f8-2c88-49c1-875b-bff3722185ab'
-            const res : any = await fetchCategories(userId)
-            console.log("res=-==== ",res)
+            const userId = localStorage.getItem('userId')
+            const res : any = await fetchCategories(userId || '')
             if(res.status != 'OK') enqueueSnackBar(res)
             else{
                 enqueueSnackbar({ severity: 'success', message: res.message });
@@ -324,15 +304,7 @@ function History({dates} : DateProps) {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />}
             </Paper>
-            {snackBarOpen && <div className="fixed bottom-4 right-4 z-50 w-[20rem] h-6">
-                <CustomizedSnackbar
-                    severity={snackBarProps?.severity ?? 'error'}
-                    message={snackBarProps?.message ?? ''}
-                    open={snackBarOpen}
-                    onClose={handleSnackBarClose}
-                    onSnackBarClose={handleSnackBarClose}
-                />
-            </div>}
+            <SnackbarRenderer />
         </ div>
     )
 }

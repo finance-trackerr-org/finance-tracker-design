@@ -7,9 +7,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { FormInput } from "./form-input"
 import { Button } from "@mui/material"
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { loginUser } from "@/lib/api/auth"
-import CustomizedSnackbar from "../SnackBar"
+import { removeCookie, setUserCookies } from "@/lib/utils/tokenHandler"
+import { fetchUserByName } from "@/lib/api/user"
+import { useSnackbarQueue } from "@/app/hooks/useSnackbarQueue"
 
 const FormSchema = z.object({
     email : z.string().email({ message : "Invalid email address" }),
@@ -21,9 +23,8 @@ const FormSchema = z.object({
     })
 
 function SignInForm() {
-  const [snackBarProps ,setSnackBarProps] = useState<null | { severity: 'success' | 'error'; message: string }>(null);
-  const [snackBarOpen, setSnackBarOpen] = useState(false);
-  const [snackBarQueue, setSnackBarQueue] = useState<{ message: string; severity: 'error' | 'success' }[]>([]);
+  const { enqueueSnackbar, SnackbarRenderer } = useSnackbarQueue();
+  const searchParams = useSearchParams();
 
   const router = useRouter();
 
@@ -35,58 +36,61 @@ function SignInForm() {
     }
   })
 
-  const handleSnackBarClose = () => {
-    setSnackBarOpen(false);
-    setSnackBarProps(null);
-  };
+    useEffect(() => {
+    const error = searchParams.get('error')
+    const logout = searchParams.get('logout')
+    if (error || logout) {
+      const message =
+        error === 'invalid_token' ? 'Your session has expired.' : logout == 'true' ? 'Login to enjoy services'
+          : 'An unknown error occurred.'
 
-  useEffect(() => {
-    if(!snackBarOpen && snackBarQueue.length>0){
-      const nextStack = snackBarQueue[0]
-      setSnackBarProps(nextStack)
-      setSnackBarQueue(prev => prev.slice(1))
-      setSnackBarOpen(true)
+      enqueueSnackbar({ severity: 'error', message: message });
+      localStorage.clear();
+      removeCookie();
+
+      const newUrl = new URL(window.location.href)
+      if(error) newUrl.searchParams.delete('error')
+      else newUrl.searchParams.delete('logout')
+      router.replace(newUrl.pathname + newUrl.search)
     }
-  }, [snackBarQueue,snackBarOpen])
-
-  const enqueueSnackbar = (snack : { message: string; severity: 'error' | 'success' }) => {
-    setSnackBarQueue(prev => [... prev, snack])
-  }
+  }, [searchParams])
 
   const { reset } = form;
 
   async function onSubmit(data : z.infer<typeof FormSchema>) {
-    console.log("data==== ",data)
     try{
       const res = await loginUser(data);
-      console.log("res11qq====",res);
-
       if(res.status != "OK") {
           enqueueSnackbar({ severity: 'error', message: res.message });
-          setSnackBarOpen(true);
-          console.log("res.errors====",res.errors)
           if(res.errors){
             if(typeof res.errors == 'string') {
               enqueueSnackbar({ severity: 'error',message: res.errors });
-              setSnackBarOpen(true);
             }else{
               for(let error of res.errors){
                 console.log(error)
                 enqueueSnackbar({ severity: 'error', message: error });
-                setSnackBarOpen(true);
               }
             }
             reset();
         }
-      }else {
-        enqueueSnackbar({ severity: 'success', message: res.message });
-        setSnackBarOpen(true);
-        router.replace('/dashboard');
+      } else {
+        const token = res.data;
+        setUserCookies(token);
+        const userDetails = await fetchUserByName();
+        if(userDetails.status != 'OK') {
+          enqueueSnackbar({ severity: 'error', message: 'User Details Not Found' });
+          reset();
+        } else {
+          localStorage.setItem('userDetail', userDetails.data)
+          localStorage.setItem('userId', userDetails.data['id'])
+
+          enqueueSnackbar({ severity: 'success', message: res.message });
+          reset();
+          router.replace('/dashboard');
+        }
       }
     } catch(err : any) {
-      setSnackBarProps({ severity: 'error', message: 'Something went wrong' });
-      setSnackBarOpen(true);
-
+      enqueueSnackbar({ severity: 'error', message: 'Something went wrong' });
       reset();
     }
   }
@@ -116,15 +120,7 @@ function SignInForm() {
           >Submit</Button>
       </form>
 
-      {snackBarOpen && <div className="fixed bottom-4 right-4 z-50 w-[20rem] h-6">
-        <CustomizedSnackbar
-          severity={snackBarProps?.severity ?? 'error'}
-          message={snackBarProps?.message ?? ''}
-          open={snackBarOpen}
-          onClose={handleSnackBarClose}
-          onSnackBarClose={handleSnackBarClose}
-        />
-      </div>}
+      <SnackbarRenderer />
     </div>
   )
 }

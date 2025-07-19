@@ -5,11 +5,10 @@ import React, { useEffect, useState } from 'react'
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { addTransaction, fetchCategories } from '@/lib/api/transaction';
-import CustomSelectDropdown from '../CustomeSelectDropdown';
-import CustomizedSnackbar from '../SnackBar';
+import CustomSelectDropdown from '../ui/CustomeSelectDropdown';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import CustomDatePicker from '../Calendar';
+import CustomDatePicker from '../ui/Calendar';
 import dayjs, { Dayjs } from 'dayjs';
 import { styled } from '@mui/material/styles';
 import InsertPhotoIcon from "@mui/icons-material/InsertPhoto";
@@ -18,6 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import CloseIcon from '@mui/icons-material/Close';
+import { useSnackbarQueue } from '@/app/hooks/useSnackbarQueue';
 
 const TransactionSchema = z.object({
     amount : z.number({ required_error : "Amount is required" })
@@ -40,9 +40,7 @@ function TransactionAdd() {
     const [selectedType, setSelectedType] = useState<'income' | 'expense'>('income');
     const [file, setFile] = useState<FileInput | null>(null);
 
-    const [snackBarProps ,setSnackBarProps] = useState<null | { severity: 'success' | 'error'; message: string }>(null);
-    const [snackBarOpen, setSnackBarOpen] = useState(false);
-    const [snackBarQueue, setSnackBarQueue] = useState<{ message: string; severity: 'error' | 'success' }[]>([]);
+    const { enqueueSnackbar, SnackbarRenderer } = useSnackbarQueue();
 
     const [categoryOptions, selectCategoryOptions] = useState([])
 
@@ -85,13 +83,13 @@ function TransactionAdd() {
 
     async function fetchSystemCategories() {
         try{
-            const userId = '8fd487f8-2c88-49c1-875b-bff3722185ab'
-            const res : any = await fetchCategories(userId)
+            const userId = localStorage.getItem('userId');
+            const res : any = await fetchCategories(userId || '')
             if(res.status != 'OK'){
                 enqueueSnackbar({ severity: 'error', message: res.message });
                 if(res.errors){
                     if(typeof res.errors == 'string') {
-                        enqueueSnackbar({ severity: 'error', message: res.message });
+                        enqueueSnackbar({ severity: 'error', message: res.errors });
                     }else{
                         for(let error of res.errors){
                             enqueueSnackbar({ severity: 'error', message: error });
@@ -109,12 +107,14 @@ function TransactionAdd() {
 
     async function onSubmit(data : FormData) {
         try{
+            const userData : any = localStorage.getItem('userData')
+            const userId = userData.userId
             const updatedData = {
                 ... data,
                 role : 'USER',
                 date: data.date.format("YYYY-MM-DD"), 
                 type : selectedType.toUpperCase(),
-                userId: '8fd487f8-2c88-49c1-875b-bff3722185ab'
+                userId: userId
             }
 
             const formData = new FormData();
@@ -128,29 +128,23 @@ function TransactionAdd() {
             const res = await addTransaction(formData)
             if(res.status != 'OK') {
                 enqueueSnackbar({ severity: 'error', message: res.message });
-                setSnackBarOpen(true);
                 if(res.errors){
                     if(typeof res.errors == 'string') {
                         enqueueSnackbar({ severity: 'error', message: res.message });
-                        setSnackBarOpen(true);
                     }else{
                         for(let error of res.errors){
                             enqueueSnackbar({ severity: 'error', message: error });
-                            setSnackBarOpen(true);
                         }
                     }
                     reset();
                 }
             }else {
                 enqueueSnackbar({ severity: 'success', message: res.message });
-                setSnackBarOpen(true);
                 reset();
             }
             } catch(err : any) {
-            setSnackBarProps({ severity: 'error', message: 'Something went wrong' });
-            setSnackBarOpen(true);
-        
-            reset();
+                enqueueSnackbar({ severity: 'error', message: 'Something went wrong' });
+                reset();
             }
     }
 
@@ -161,15 +155,6 @@ function TransactionAdd() {
         const fileName = input?.name;
         const fileUrl = URL.createObjectURL(input);
         setFile({inputFile: input, fileType, fileName, fileUrl});
-    }
-
-    const handleSnackBarClose = () => {
-        setSnackBarOpen(false);
-        setSnackBarProps(null);
-    };
-
-    const enqueueSnackbar = (snack : { message: string; severity: 'error' | 'success' }) => {
-        setSnackBarQueue(prev => [... prev, snack])
     }
 
     useEffect(() => {
@@ -335,15 +320,7 @@ function TransactionAdd() {
                     <Button variant='contained' type="submit" sx={{ width:'12rem', height:'3rem' }}>Add Transaction</Button>
                 </div>
             </form>
-            {snackBarOpen && <div className="fixed bottom-4 right-4 z-50 w-[20rem] h-6">
-                <CustomizedSnackbar
-                    severity={snackBarProps?.severity ?? 'error'}
-                    message={snackBarProps?.message ?? ''}
-                    open={snackBarOpen}
-                    onClose={handleSnackBarClose}
-                    onSnackBarClose={handleSnackBarClose}
-                />
-            </div>}
+            <SnackbarRenderer />
         </ div>
     )
 }

@@ -9,7 +9,7 @@ import { Button } from "@mui/material"
 import { registerUser } from "@/lib/api/auth"
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from "react"
-import CustomizedSnackbar from "../SnackBar"
+import { useSnackbarQueue } from "@/app/hooks/useSnackbarQueue"
 
 const FormSchema = z.object({
     firstname : z.string()
@@ -35,9 +35,7 @@ function SignUpForm() {
   
   const router = useRouter();
 
-  const [snackBarProps ,setSnackBarProps] = useState<null | { severity: 'success' | 'error'; message: string }>(null);
-  const [snackBarOpen, setSnackBarOpen] = useState(false);
-  const [snackBarQueue, setSnackBarQueue] = useState<{ message: string; severity: 'error' | 'success' }[]>([]);
+  const { enqueueSnackbar, SnackbarRenderer } = useSnackbarQueue();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver : zodResolver(FormSchema),
@@ -50,24 +48,6 @@ function SignUpForm() {
     }
   })
 
-  const handleSnackBarClose = () => {
-    setSnackBarOpen(false);
-    setSnackBarProps(null);
-  };
-
-  useEffect(() => {
-    if(!snackBarOpen && snackBarQueue.length>0){
-      const nextStack = snackBarQueue[0]
-      setSnackBarProps(nextStack)
-      setSnackBarQueue(prev => prev.slice(1))
-      setSnackBarOpen(true)
-    }
-  }, [snackBarQueue,snackBarOpen])
-
-  const enqueueSnackbar = (snack : { message: string; severity: 'error' | 'success' }) => {
-    setSnackBarQueue(prev => [... prev, snack])
-  }
-
   const { reset } = form;
 
   async function onSubmit(data : z.infer<typeof FormSchema>) {
@@ -76,34 +56,26 @@ function SignUpForm() {
         ... data,
         role : 'USER'
       }
-      console.log("data====",updatedData)
       const res : any = await registerUser(updatedData)
-      console.log("res.status===",res.status)
       if(res.status != 'OK') {
         enqueueSnackbar({ severity: 'error', message: res.message });
-        setSnackBarOpen(true);
-        console.log("res.errors====",res.errors)
         if(res.errors){
           if(typeof res.errors == 'string') {
-            enqueueSnackbar({ severity: 'error', message: res.message });
-            setSnackBarOpen(true);
+            enqueueSnackbar({ severity: 'error', message: res.errors });
           }else{
             for(let error of res.errors){
               console.log(error)
               enqueueSnackbar({ severity: 'error', message: error });
-              setSnackBarOpen(true);
             }
           }
           reset();
         }
       }else {
         enqueueSnackbar({ severity: 'success', message: res.message });
-        setSnackBarOpen(true);
         router.replace('/user/login');
       }
     } catch(err : any) {
-      setSnackBarProps({ severity: 'error', message: 'Something went wrong' });
-      setSnackBarOpen(true);
+      enqueueSnackbar({ severity: 'error', message: 'Something went wrong' });
 
       reset();
     }
@@ -156,15 +128,7 @@ function SignUpForm() {
           >Submit</Button>
       </form>
 
-        {snackBarOpen && <div className="fixed bottom-4 right-4 z-50 w-[20rem] h-6">
-          <CustomizedSnackbar
-            severity={snackBarProps?.severity ?? 'error'}
-            message={snackBarProps?.message ?? ''}
-            open={snackBarOpen}
-            onClose={handleSnackBarClose}
-            onSnackBarClose={handleSnackBarClose}
-          />
-        </div>}
+        <SnackbarRenderer />
     </div>
   )
 }

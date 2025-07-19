@@ -13,26 +13,15 @@ import {
 } from '@mui/material';
 import { CATEGORIES } from '@/app/constants/data';
 import { addUserMasterBudget } from '@/lib/api/transaction';
-import CustomizedSnackbar from '../SnackBar';
 import dayjs, { Dayjs } from 'dayjs';
+import { useSnackbarQueue } from '@/app/hooks/useSnackbarQueue';
 
 export default function UserMasterBudgetDialog() {
     const [open, setOpen] = useState(false);
     const [balance, setBalance] = useState('');
     const [distribution, setDistribution] = useState<{ [key: string]: string }>({});
 
-    const [snackBarProps ,setSnackBarProps] = useState<null | { severity: 'success' | 'error'; message: string }>(null);
-    const [snackBarOpen, setSnackBarOpen] = useState(false);
-    const [snackBarQueue, setSnackBarQueue] = useState<{ message: string; severity: 'error' | 'success' }[]>([]);
-
-    const handleSnackBarClose = () => {
-        setSnackBarOpen(false);
-        setSnackBarProps(null);
-    };
-
-    const enqueueSnackbar = (snack : { message: string; severity: 'error' | 'success' }) => {
-        setSnackBarQueue(prev => [... prev, snack])
-    }
+    const { enqueueSnackbar, SnackbarRenderer } = useSnackbarQueue();
 
     const handleClickOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -44,20 +33,11 @@ export default function UserMasterBudgetDialog() {
         }));
     };
 
-    useEffect(() => {
-        if(!snackBarOpen && snackBarQueue.length>0){
-            const nextStack = snackBarQueue[0]
-            setSnackBarProps(nextStack)
-            setSnackBarQueue(prev => prev.slice(1))
-            setSnackBarOpen(true)
-        }
-    }, [snackBarQueue,snackBarOpen])
-
     const handleSave = async () => {
         try{
             const now = dayjs();
             const requestBody : any = {
-                userId : "8fd487f8-2c88-49c1-875b-bff3722185ab",
+                userId : localStorage.getItem('userId'),
                 totalBalance : balance,
                 categoryPricing : distribution,
                 date : now.format('YYYY-MM-DD')
@@ -67,7 +47,7 @@ export default function UserMasterBudgetDialog() {
                 enqueueSnackbar({ severity: 'error', message: res.message });
                 if(res.errors){
                     if(typeof res.errors == 'string') {
-                        enqueueSnackbar({ severity: 'error', message: res.message });
+                        enqueueSnackbar({ severity: 'error', message: res.errors });
                     }else{
                         for(let error of res.errors){
                             enqueueSnackbar({ severity: 'error', message: error });
@@ -132,15 +112,7 @@ export default function UserMasterBudgetDialog() {
             </DialogActions>
         </Dialog>
 
-        {snackBarOpen && <div className="fixed bottom-4 right-4 z-50 w-[20rem] h-6">
-            <CustomizedSnackbar
-                severity={snackBarProps?.severity ?? 'error'}
-                message={snackBarProps?.message ?? ''}
-                open={snackBarOpen}
-                onClose={handleSnackBarClose}
-                onSnackBarClose={handleSnackBarClose}
-            />
-        </div>}
+        <SnackbarRenderer />
         </>
     );
 }

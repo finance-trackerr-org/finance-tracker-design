@@ -6,8 +6,9 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import { Typography } from '@mui/material';
-import CustomizedSnackbar from '../SnackBar';
+
 import { fetchFinanceOverview } from '@/lib/api/transaction';
+import { useSnackbarQueue } from '@/app/hooks/useSnackbarQueue';
 
 interface FinanceOverview {
     income : number | null;
@@ -52,31 +53,10 @@ function Overview({dates} : DateProps) {
 
     const [overviewData, setOverviewData] = useState<FinanceOverview>(finance_overview_default);
 
-    const [snackBarProps ,setSnackBarProps] = useState<null | { severity: 'success' | 'error'; message: string }>(null);
-    const [snackBarOpen, setSnackBarOpen] = useState(false);
-    const [snackBarQueue, setSnackBarQueue] = useState<{ message: string; severity: 'error' | 'success' }[]>([]);
+    const { enqueueSnackbar, SnackbarRenderer } = useSnackbarQueue();
 
-    const handleSnackBarClose = () => {
-        setSnackBarOpen(false);
-        setSnackBarProps(null);
-    };
-
-    const enqueueSnackbar = (snack : { message: string; severity: 'error' | 'success' }) => {
-        setSnackBarQueue(prev => [... prev, snack])
-    }
-
-    useEffect(() => {
-        if(!snackBarOpen && snackBarQueue.length>0){
-            const nextStack = snackBarQueue[0]
-            setSnackBarProps(nextStack)
-            setSnackBarQueue(prev => prev.slice(1))
-            setSnackBarOpen(true)
-        }
-    }, [snackBarQueue,snackBarOpen])
-
-    async function fetchOverview(fromDate : string, toDate : string, userId : string) {
+    async function fetchOverview(fromDate : string, toDate : string, userId : string | null) {
         try{
-            console.log(fromDate,toDate)
             const requestBody : any = {
                 userId : userId,
                 fromDate : fromDate,
@@ -88,7 +68,7 @@ function Overview({dates} : DateProps) {
                 enqueueSnackbar({ severity: 'error', message: res.message });
                 if(res.errors){
                     if(typeof res.errors == 'string') {
-                        enqueueSnackbar({ severity: 'error', message: res.message });
+                        enqueueSnackbar({ severity: 'error', message: res.errors });
                     }else{
                         for(let error of res.errors){
                             enqueueSnackbar({ severity: 'error', message: error });
@@ -106,8 +86,7 @@ function Overview({dates} : DateProps) {
     }
 
     useEffect(() => {
-        console.log('dates111=====',dates.fromDate)
-        fetchOverview(dates.fromDate,dates.toDate,"8fd487f8-2c88-49c1-875b-bff3722185ab")
+        fetchOverview(dates.fromDate,dates.toDate,localStorage.getItem('userId'))
     },[dates])
 
     const [balance_diff, balance_achieved] = IsValidNumber(overviewData.balance, overviewData.previous_balance);
@@ -174,15 +153,7 @@ function Overview({dates} : DateProps) {
                 <Typography variant='h5' className='font-black'>${ overviewData.upcoming_bills }</Typography>
                 <Typography variant='caption'>Next { overviewData.upcoming_bill_days } days</Typography>
             </div>
-            {snackBarOpen && <div className="fixed bottom-4 right-4 z-50 w-[20rem] h-6">
-                <CustomizedSnackbar
-                    severity={snackBarProps?.severity ?? 'error'}
-                    message={snackBarProps?.message ?? ''}
-                    open={snackBarOpen}
-                    onClose={handleSnackBarClose}
-                    onSnackBarClose={handleSnackBarClose}
-                />
-            </div>}
+            <SnackbarRenderer />
         </div>
     )
 }

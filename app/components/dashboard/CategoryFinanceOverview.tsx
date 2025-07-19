@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from 'react'
 import BudgetOverview from './BudgetOverview'
 import ExpenseBreakdown from './ExpenseBreakdown'
-import CustomizedSnackbar from '../SnackBar';
 import { fetchCategoriesTransactionData } from '@/lib/api/transaction';
 import { CATEGORIES_COLOR } from '../../constants/data';
+import { useSnackbarQueue } from '@/app/hooks/useSnackbarQueue';
 
 interface Transaction {
     date: string;
@@ -61,27 +61,7 @@ function CategoryFinanceOverview({dates} : DateProps) {
         totalSpent : null,
         expenseBreakdownData : []
     });
-    const [snackBarProps ,setSnackBarProps] = useState<null | { severity: 'success' | 'error'; message: string }>(null);
-    const [snackBarOpen, setSnackBarOpen] = useState(false);
-    const [snackBarQueue, setSnackBarQueue] = useState<{ message: string; severity: 'error' | 'success' }[]>([]);
-
-    const handleSnackBarClose = () => {
-        setSnackBarOpen(false);
-        setSnackBarProps(null);
-    };
-
-    const enqueueSnackbar = (snack : { message: string; severity: 'error' | 'success' }) => {
-        setSnackBarQueue(prev => [... prev, snack])
-    }
-
-    useEffect(() => {
-        if(!snackBarOpen && snackBarQueue.length>0){
-            const nextStack = snackBarQueue[0]
-            setSnackBarProps(nextStack)
-            setSnackBarQueue(prev => prev.slice(1))
-            setSnackBarOpen(true)
-        }
-    }, [snackBarQueue,snackBarOpen])
+    const { enqueueSnackbar, SnackbarRenderer } = useSnackbarQueue();
 
     function transformData(categoriesTransactionData : CategoriesFinanceOverviewMap){
         try{
@@ -115,7 +95,7 @@ function CategoryFinanceOverview({dates} : DateProps) {
         }
     }
 
-    async function fetchCategoriesTransactions(fromDate : string, toDate : string, userId : string) {
+    async function fetchCategoriesTransactions(fromDate : string, toDate : string, userId : string | null) {
         try{
             const requestBody : any = {
                 userId : userId,
@@ -127,7 +107,7 @@ function CategoryFinanceOverview({dates} : DateProps) {
                 enqueueSnackbar({ severity: 'error', message: res.message });
                 if(res.errors){
                     if(typeof res.errors == 'string') {
-                        enqueueSnackbar({ severity: 'error', message: res.message });
+                        enqueueSnackbar({ severity: 'error', message: res.errors });
                     }else{
                         for(let error of res.errors){
                             enqueueSnackbar({ severity: 'error', message: error });
@@ -139,7 +119,6 @@ function CategoryFinanceOverview({dates} : DateProps) {
         }else {
             enqueueSnackbar({ severity: 'success', message: res.message });
             const {categoryAmountData, totalSpent, expenseBreakdownData} = transformData(res.data)
-            console.log("expenseBreakdownData===", categoryAmountData, totalSpent, expenseBreakdownData)
             setBudgetOverviewData(categoryAmountData)
             setExpenseBreakdownData({ 'totalSpent' : totalSpent,  'expenseBreakdownData' : expenseBreakdownData})
         }
@@ -149,22 +128,14 @@ function CategoryFinanceOverview({dates} : DateProps) {
     }
     
     useEffect(() => {
-        fetchCategoriesTransactions(dates.fromDate,dates.toDate,"8fd487f8-2c88-49c1-875b-bff3722185ab")
+        fetchCategoriesTransactions(dates.fromDate,dates.toDate,localStorage.getItem('userId'))
     },[dates])
     
     return (
         <>
             <BudgetOverview budgetOverviewData = {budgetOverviewData} />
             <ExpenseBreakdown expenseBreakdown = {expenseBreakdownData} />
-            {snackBarOpen && <div className="fixed bottom-4 right-4 z-50 w-[20rem] h-6">
-                <CustomizedSnackbar
-                    severity={snackBarProps?.severity ?? 'error'}
-                    message={snackBarProps?.message ?? ''}
-                    open={snackBarOpen}
-                    onClose={handleSnackBarClose}
-                    onSnackBarClose={handleSnackBarClose}
-                />
-            </div>}
+            <SnackbarRenderer />
         </>
     )
 }

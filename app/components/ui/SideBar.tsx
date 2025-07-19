@@ -18,26 +18,42 @@ import {
   ListItemText,
   Typography,
   Divider,
+  Collapse,
 } from '@mui/material';
 import { useRouter, usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { ReceiptOutlined } from '@mui/icons-material';
 
 const drawerWidth = 240;
 
 const mainMenu = [
   { text: 'Dashboard', icon: <DashboardIcon />, path : '/dashboard' },
-  { text: 'Transactions', icon: <ReceiptLongIcon />, path : '/dashboard/transactions/history' },
+  { text: 'Transactions', 
+    icon: <ReceiptOutlined />,
+    childs : [
+      { text: 'History', icon: <ReceiptLongIcon />, path : '/dashboard/transactions/history' },
+      { text: 'Add', icon: <ReceiptLongIcon />, path : '/dashboard/transactions/add' },
+    ]
+  },
   { text: 'Budget', icon: <LayersIcon />, path : '/' },
 ];
 
 const otherMenu = [
   { text: 'Settings', icon: <SettingsIcon />, path : '/' },
   { text: 'Help', icon: <HelpOutlineIcon />, path : '/' },
-  { text: 'Logout', icon: <LogoutIcon />, path : '/' },
+  { text: 'Logout', icon: <LogoutIcon />, path : 'user/login?logout=true' },
 ];
 
 function SideBar() {
+  const [openMenu, setOpenMenu] = useState<string[]>([]);
   const router = useRouter();
   const pathname = usePathname();
+
+  const toggleMenu = (text: string) => {
+    setOpenMenu((prev) =>
+        prev.includes(text) ? prev.filter((item) => item !== text) : [...prev, text]
+    );
+  };
 
   const Skeleton = styled('div')<{ height: number }>(({ theme, height }) => ({
     backgroundColor: theme.palette.action.hover,
@@ -76,10 +92,17 @@ function SideBar() {
 
             <List>
               {mainMenu.map((item) => (
-                <ListItem key={item.text} disablePadding>
+              <div  key={item.text}>
+                <ListItem disablePadding>
                   <ListItemButton
                     selected = {pathname === item.path}
-                    onClick={() => router.push(item.path)}
+                    onClick ={() => {
+                      if (item.childs) {
+                        toggleMenu(item.text);
+                      } else if (item.path) {
+                        router.push(item.path);
+                      }
+                    }}
                     sx={{
                       '&.Mui-selected': {
                         backgroundColor: '#e0f2fe',
@@ -92,6 +115,27 @@ function SideBar() {
                     <ListItemText primary={item.text} />
                   </ListItemButton>
                 </ListItem>
+
+                {item.childs && (
+                <Collapse in={openMenu.includes(item.text)} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    {item.childs.map((child) => (
+                      <ListItem key={child.text} disablePadding>
+                        <ListItemButton
+                          sx={{ pl: 4 }}
+                          selected={pathname === child.path}
+                          onClick={() => router.push(child.path)}
+                          className="child-list-button"
+                        >
+                          <ListItemIcon>{child.icon}</ListItemIcon>
+                          <ListItemText primary={child.text} />
+                        </ListItemButton>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Collapse>
+                )}
+                </div>
               ))}
             </List>
           </Box>

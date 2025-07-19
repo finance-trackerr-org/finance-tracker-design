@@ -1,5 +1,4 @@
 export const registerUser = async(data: {firstname : string, lastname : string, email : string, password : string, role : string}) => {
-    console.log("data==== ",data);
     const response = await fetch('http://localhost:8080/api/auth/register',{
         method:'post',
         headers:{
@@ -20,7 +19,6 @@ export const loginUser = async(data: {email : string, password : string}) => {
         },
         body: JSON.stringify(data),
     })
-    // console.log("response  ==",await response.json());
 
     return await response.json();
 }
